@@ -1,16 +1,18 @@
 import torch
 import torch.nn as nn
 
+
 class SelfAttention(nn.Module):
     def __init__(self, embed_size, heads):
         super(SelfAttention, self).__init__()
         self.embed_size = embed_size
         self.heads = heads
-        self.head_dim = embed_size // heads
+        # self.head_dim = embed_size // heads
+        self.head_dim = embed_size
 
-        assert (
-            self.head_dim * heads == embed_size
-        ), "Embedding size needs to be divisible by heads"
+        # assert (
+        #     self.head_dim * heads == embed_size
+        # ), "Embedding size needs to be divisible by heads"
 
         self.values = nn.Linear(self.head_dim, self.head_dim, bias=False)
         self.keys = nn.Linear(self.head_dim, self.head_dim, bias=False)
@@ -28,9 +30,15 @@ class SelfAttention(nn.Module):
         value_len, key_len, query_len = values.shape[1], keys.shape[1], query.shape[1]
 
         # Split the embedding into self.heads different pieces
-        values = values.reshape(N, value_len, self.heads, self.head_dim)
-        keys = keys.reshape(N, key_len, self.heads, self.head_dim)
-        query = query.reshape(N, query_len, self.heads, self.head_dim)
+
+        # values = values.reshape(N, value_len, self.heads, self.head_dim)
+        # keys = keys.reshape(N, key_len, self.heads, self.head_dim)
+        # query = query.reshape(N, query_len, self.heads, self.head_dim)
+        ## Instead of dividing into parts for each head, we repeat the same thing. 
+        ## DOUBT: Is this needed though?
+        values = values.unsqueeze(2).expand(N,value_len,self.heads,self.head_dim)
+        keys = keys.unsqueeze(2).expand(N,key_len,self.heads,self.head_dim)
+        query = query.unsqueeze(2).expand(N,query_len,self.heads,self.head_dim)
 
         values = self.values(values)  # (N, value_len, heads, head_dim)
         keys = self.keys(keys)  # (N, key_len, heads, head_dim)
@@ -62,9 +70,7 @@ class SelfAttention(nn.Module):
         # values shape: (N, value_len, heads, heads_dim)
         # out after matrix multiply: (N, query_len, heads, head_dim), then
         # we reshape and flatten the last two dimensions.
-
         out = self.fc_out(out)
         # Linear layer doesn't modify the shape, final shape will be
         # (N, query_len, embed_size)
-
         return out

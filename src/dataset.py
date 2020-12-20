@@ -16,15 +16,15 @@ class MyDataset(Dataset):
         max_labels = 0
         with open(data_path) as data_file:
             data_file_lines = data_file.readlines()
-            for line in data_file_lines[1:]:    #ignore first line which is ID
+            for line in data_file_lines[1:]:  # ignore first line which is ID
                 if line.startswith('###'):
-                    max_labels = max(max_labels,len(abs_labels))
+                    max_labels = max(max_labels, len(abs_labels))
                     texts.append(abstract)
                     labels.append(abs_labels)
                     texts = ""
                     abs_labels = []
                     continue
-                label,txt = line.split(' ',1)
+                label, txt = line.split(' ', 1)
                 abstract += txt
                 abs_labels.append(label)
 
@@ -69,4 +69,4 @@ class MyDataset(Dataset):
 
 if __name__ == '__main__':
     test = MyDataset(data_path="../data/test.csv", dict_path="../data/glove.6B.50d.txt")
-    print (test.__getitem__(index=1)[0].shape)
+    print(test.__getitem__(index=1)[0].shape)
