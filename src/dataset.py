@@ -41,6 +41,8 @@ class MyDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, index):
+        ### TODO: Add init and eos tokens here
+        
         label = self.labels[index]
         text = self.texts[index]
         document_encode = [

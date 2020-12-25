@@ -91,9 +91,9 @@ class SentenceEncoder(nn.Module):
         for layer in self.layers:
             out = layer(out,out,out,label_embed,mask)
         print('sent out.shape',out.shape)
-        # out - N,embed_size
-        # word_level_output - N,par_len, embed_size - Basically for each element in the batch, 
-        # for each sentence in the abstract, we have a embed_size vector
-        return out,combined_word_level_out
+        # out - N,par_len,embed_size
+        # word_level_output - N,par_len, seq_len, embed_size - Basically for each element in the batch, 
+        # for each sentence in the abstract, we have a embed_size vector for each word
+        return out, word_level_outputs
 
 
