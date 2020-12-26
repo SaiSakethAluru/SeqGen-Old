@@ -7,18 +7,16 @@ import numpy as np
 
 class MyDataset(Dataset):
 
-    def __init__(self, data_path, dict_path, max_length_sentences=30, max_length_word=35):
+    def __init__(self, data_path, dict_path,label_list, max_length_sentences=30, max_length_word=35):
         super(MyDataset, self).__init__()
 
         texts, labels = [], []
         abstract = ""
         abs_labels = []
-        max_labels = 0
         with open(data_path) as data_file:
             data_file_lines = data_file.readlines()
             for line in data_file_lines[1:]:  # ignore first line which is ID
                 if line.startswith('###'):
-                    max_labels = max(max_labels, len(abs_labels))
                     texts.append(abstract)
                     labels.append(abs_labels)
                     texts = ""
@@ -35,28 +33,35 @@ class MyDataset(Dataset):
         self.dict = [word[0] for word in self.dict]
         self.max_length_sentences = max_length_sentences
         self.max_length_word = max_length_word
-        self.max_labels = max_labels
+        self.label_list = ['<sos>']+label_list
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, index):
         ### TODO: Add init and eos tokens here
-        
-        label = self.labels[index]
+        # ['<pad>','<unk>','<sos>'] + vocab
+        labels = self.labels[index]
+        label_encode = [self.dict.index(label)+3 if label in self.dict else 1 for label in labels]
+        labels = ['<sos>']+labels
+        label_encode = [2]+label_encode
+        if(len(label_encode)<self.max_length_sentences):
+            extended_labels = [0 for _ in range(self.max_length_sentences - len(label_encode))]
+            label_encode.extend(extended_labels)
+        label_encode = label_encode[:self.max_length_sentences]
         text = self.texts[index]
         document_encode = [
-            [self.dict.index(word) if word in self.dict else -1 for word in word_tokenize(text=sentences)] for sentences
+            [self.dict.index(word)+3 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
             in
             sent_tokenize(text=text)]
 
         for sentences in document_encode:
             if len(sentences) < self.max_length_word:
-                extended_words = [-1 for _ in range(self.max_length_word - len(sentences))]
+                extended_words = [0 for _ in range(self.max_length_word - len(sentences))]
                 sentences.extend(extended_words)
 
         if len(document_encode) < self.max_length_sentences:
-            extended_sentences = [[-1 for _ in range(self.max_length_word)] for _ in
+            extended_sentences = [[0 for _ in range(self.max_length_word)] for _ in
                                   range(self.max_length_sentences - len(document_encode))]
             document_encode.extend(extended_sentences)
 
@@ -66,9 +71,10 @@ class MyDataset(Dataset):
         document_encode = np.stack(arrays=document_encode, axis=0)
         document_encode += 1
 
-        return document_encode.astype(np.int64), label
+        return document_encode.astype(np.int64), label_encode
 
 
 if __name__ == '__main__':
-    test = MyDataset(data_path="../data/test.csv", dict_path="../data/glove.6B.50d.txt")
+    LABEL_LIST = ['introduction','background','method','results','conclusion']
+    test = MyDataset(data_path="../data/test.csv", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
     print(test.__getitem__(index=1)[0].shape)

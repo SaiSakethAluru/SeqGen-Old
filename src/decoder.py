@@ -1,25 +1,40 @@
 import torch
 import torch.nn as nn
+import pandas as pd
+import numpy as np
+import csv
 from decoder_block import DecoderBlock
 
 
 class Decoder(nn.Module):
     def __init__(
             self,
-            tgt_vocab_size,
+            label_list,
             embed_size,
             num_layers,
             heads,
             forward_expansion,
             dropout,
             device,
-            max_length
+            max_par_len,
+            max_seq_len,
+            embed_path = '../data/glove.6B.100d.txt'
     ):
         super(Decoder, self).__init__()
         self.device = device
         # TODO: add glove here
-        self.word_embedding = nn.Embedding(tgt_vocab_size, embed_size)
-        self.position_embedding = nn.Embedding(max_length, embed_size)
+        embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values[:,1:]
+        src_vocab_size,embed_size = embeds.shape
+        self.embed_size = embed_size
+        src_vocab_size += 3
+        unknown_word = np.zeros((1, embed_size))
+        pad_word = np.zeros((1,embed_size))
+        sos_word = np.zeros((1,embed_size))
+        embeds = torch.from_numpy(np.concatenate([unknown_word,pad_word,sos_word,embeds], axis=0).astype(np.float))
+        # words = [word[0] for word in words]
+        # label_embeds = 
+        self.word_embedding = nn.Embedding(src_vocab_size, embed_size).from_pretrained(embeds)
+        self.position_embedding = nn.Embedding(max_par_len, embed_size)
 
         self.layers = nn.ModuleList(
             [
@@ -28,7 +43,7 @@ class Decoder(nn.Module):
             ]
         )
 
-        self.fc_out = nn.Linear(embed_size, tgt_vocab_size)
+        self.fc_out = nn.Linear(embed_size, len(label_list))
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, enc_out, enc_word_out, src_mask, word_level_mask, trg_mask):

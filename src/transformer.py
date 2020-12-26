@@ -6,41 +6,43 @@ from decoder import Decoder
 class Transformer(nn.Module):
     def __init__(
             self,
-            src_vocab_size,
-            trg_vocab_size,
+            label_list,
             src_pad_idx,
             trg_pad_idx,
-            labels,
             embed_size=512,
             num_layers=6,
             forward_expansion=4,
             heads=8,
             dropout=0,
             device="cpu",
-            max_length=100,
-            
+            max_par_len=10,
+            max_seq_len=20,
+            embed_path='../data/glove.6B.100d.txt'
     ):
         super(Transformer, self).__init__()
         self.encoder = SentenceEncoder(
-            src_vocab_size,
+            label_list,
             embed_size,
             num_layers,
             heads,
             device,
             forward_expansion,
             dropout,
-            max_length,
-            labels
+            max_par_len,
+            max_seq_len,
+            embed_path
         )
         self.decoder = Decoder(
-            trg_vocab_size,
+            label_list,
             embed_size,
             num_layers,
             heads,
             forward_expansion,
             dropout,
             device,
-            max_length
+            max_par_len,
+            max_seq_len,
+            embed_path
         )
         self.src_pad_idx = src_pad_idx
         self.trg_pad_idx = trg_pad_idx
