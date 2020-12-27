@@ -23,10 +23,10 @@ class SelfAttention(nn.Module):
         # Get number of training examples
         #Inputs - N,seq_len,embed_size
         N = query.shape[0]
-        print('selfatt values.shape',values.shape)
-        print('selfatt keys.shape',keys.shape)
-        print('selfatt query.shape',query.shape)
-        print('selfatt mask.shape',mask.shape)
+        # print('selfatt values.shape',values.shape)
+        # print('selfatt keys.shape',keys.shape)
+        # print('selfatt query.shape',query.shape)
+        # print('selfatt mask.shape',mask.shape)
         value_len, key_len, query_len = values.shape[1], keys.shape[1], query.shape[1]
 
         # Split the embedding into self.heads different pieces

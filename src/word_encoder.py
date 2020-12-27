@@ -29,7 +29,7 @@ class WordEncoder(nn.Module):
         unknown_word = np.zeros((1, embed_size))
         pad_word = np.zeros((1,embed_size))
         sos_word = np.zeros((1,embed_size))
-        embeds = torch.from_numpy(np.concatenate([unknown_word,pad_word,sos_word,embeds], axis=0).astype(np.float))
+        embeds = torch.from_numpy(np.concatenate([unknown_word,pad_word,sos_word,embeds], axis=0).astype(np.float)).to(device)
 
         self.word_embedding = nn.Embedding(src_vocab_size, embed_size).from_pretrained(embeds)
         self.position_embedding = nn.Embedding(max_length,embed_size)
@@ -44,29 +44,29 @@ class WordEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask):
-        print('word x.shape',x.shape)
-        print('word mask.shape',mask.shape)
+        # print('word x.shape',x.shape)
+        # print('word mask.shape',mask.shape)
         N,seq_len = x.shape
         positions = torch.arange(0,seq_len).expand(N,seq_len).to(self.device)
-        print('word positions.shape',positions.shape)
+        # print('word positions.shape',positions.shape)
         # out - N,seq_len,embed_size
         out = self.dropout(
             (self.word_embedding(x)+self.position_embedding(positions))
         )
-        print('word out.shape',out.shape)
+        # print('word out.shape',out.shape)
         label_embed = [
             self.word_embedding(label) for label in self.labels
         ]
-        print('word label_embed[0].shape',label_embed[0].shape)
+        # print('word label_embed[0].shape',label_embed[0].shape)
         # NOTE: Each entry in the above list should be 1,embed_size. If not adjust to this size
         # label_embed - N,num_labels,embed_size
         # label_embed = torch.cat(label_embed,dim=0)
         label_embed = torch.stack(label_embed,dim=0)
         label_embed = label_embed.repeat(N,1,1)
-        print('word label_embed.shape',label_embed.shape)
+        # print('word label_embed.shape',label_embed.shape)
         for layer in self.layers:
             out = layer(out,out,out,label_embed,mask)
         # out - N, seq_len, embed_size
-        print('word out.shape',out.shape)
+        # print('word out.shape',out.shape)
         return out
     

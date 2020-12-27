@@ -23,10 +23,10 @@ class CrossAttention(nn.Module):
         # Get number of training examples
         #Inputs - N,seq_len,embed_size
         N = query.shape[0]
-        print('crossatt values.shape',values.shape)
-        print('crossatt keys.shape',keys.shape)
-        print('crossatt query.shape',query.shape)
-        print('crossatt mask.shape',mask.shape)
+        # print('crossatt values.shape',values.shape)
+        # print('crossatt keys.shape',keys.shape)
+        # print('crossatt query.shape',query.shape)
+        # print('crossatt mask.shape',mask.shape)
         value_len, key_len, query_len = values.shape[1], keys.shape[1], query.shape[1]
         value_seq_len, key_seq_len = values.shape[2], keys.shape[2]
         # Split the embedding into self.heads different pieces
@@ -52,7 +52,7 @@ class CrossAttention(nn.Module):
         # queries shape: (N, query_len, heads, heads_dim),
         # keys shape: (N, key_len, heads, heads_dim)
         # energy: (N, heads, query_len, key_len)
-        print('crossatt energy.shape',energy.shape)
+        # print('crossatt energy.shape',energy.shape)
         # Mask padded indices so their weights become 0
         if mask is not None:
             energy = energy.masked_fill(mask == 0, float("-1e20"))

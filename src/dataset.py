@@ -54,9 +54,9 @@ class MyDataset(Dataset):
         label_encode = np.stack(arrays=label_encode,axis=0)
 
         text = self.texts[index]
-        print('text',text)
-        print('sentences',sent_tokenize(text))
-        print('words',word_tokenize(sent_tokenize(text)[0]))
+        # print('text',text)
+        # print('sentences',sent_tokenize(text))
+        # print('words',word_tokenize(sent_tokenize(text)[0]))
         document_encode = [
             [self.dict.index(word)+3 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
             in
@@ -84,8 +84,5 @@ class MyDataset(Dataset):
 if __name__ == '__main__':
     LABEL_LIST = ['background','objective','methods','results','conclusions']
     test = MyDataset(data_path="../data/train.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
-    # print(test.__getitem__(index=1)[0])
-    # print(test.__getitem__(index=1)[1])
     item = test.__getitem__(index=1)
-    print(item[0])
-    print(item[1])
+    print(item[0], item[1])

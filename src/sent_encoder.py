@@ -57,16 +57,16 @@ class SentenceEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
     def forward(self,x,mask):
         N,par_len,seq_len = x.shape
-        print("sent x.shape",x.shape)
-        print("sent mask.shape",mask.shape)
+        # print("sent x.shape",x.shape)
+        # print("sent mask.shape",mask.shape)
         positions = torch.arange(0,par_len).expand(N,par_len).to(self.device)
-        print("sent positions.shape",positions.shape)
+        # print("sent positions.shape",positions.shape)
         word_level_outputs = []
         x = x.permute(1,0,2)
         mask = mask.permute(1,0,2)
         # x - par_len, N, seq_len
         for i,sent in enumerate(x):
-            print("sent sent.shape",sent.shape)
+            # print("sent sent.shape",sent.shape)
             word_level_outputs.append(
                 self.word_level_encoder(
                     sent.reshape(N,seq_len), mask[i].reshape(N,seq_len)
@@ -84,11 +84,11 @@ class SentenceEncoder(nn.Module):
         combined_word_level_out = torch.einsum('npse,nps->npe',[word_level_outputs,alphas])
         #combined_word_level_out - N,par_len,embed_size
 
-        print("sent word_level_outputs.shape",word_level_outputs.shape)
+        # print("sent word_level_outputs.shape",word_level_outputs.shape)
         out = self.dropout(
             (combined_word_level_out + self.position_embedding(positions))
         )
-        print("sent out.shape",out.shape)
+        # print("sent out.shape",out.shape)
         label_embed = [
             self.word_embedding(label) for label in self.labels
         ]
@@ -96,14 +96,14 @@ class SentenceEncoder(nn.Module):
         # label_embed = torch.cat(label_embed,dim=0)
         label_embed = torch.stack(label_embed,dim=0)
         label_embed = label_embed.repeat(N,1,1)
-        print("sent label_embed.shape",label_embed.shape)
+        # print("sent label_embed.shape",label_embed.shape)
         mask = mask.permute(1,0,2)
         # mask - N,par_len,seq_len
         mask = torch.any(mask.bool(),dim=2).int()
         # mask - N,par_len --> mask now tells only if a sentence is padded one or not.
         for layer in self.layers:
             out = layer(out,out,out,label_embed,mask)
-        print('sent out.shape',out.shape)
+        # print('sent out.shape',out.shape)
         # out - N,par_len,embed_size
         # word_level_output - N,par_len, seq_len, embed_size - Basically for each element in the batch, 
         # for each sentence in the abstract, we have a embed_size vector for each word

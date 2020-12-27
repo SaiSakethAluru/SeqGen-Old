@@ -60,21 +60,21 @@ class Transformer(nn.Module):
         return trg_mask.to(self.device)
 
     def forward(self,src,trg):
-        print('transformer src.shape',src.shape)
+        # print('transformer src.shape',src.shape)
         # src --> N, par_len, seq_len -> 2,3,10
-        print('transformer trg.shape',trg.shape)
+        # print('transformer trg.shape',trg.shape)
         # trg --> N,par_len -> 2,3
         src_mask = self.make_src_mask(src)
         # src_mask --> N,par_len, seq_len -> 2,3,10
         trg_mask = self.make_trg_mask(trg)
         # trg_mask --> N, 1, par_len, par_len -> 2,1,3,3
-        print('transformer src_mask.shape',src_mask.shape)
-        print('transformer trg_mask.shape',trg_mask.shape)
+        # print('transformer src_mask.shape',src_mask.shape)
+        # print('transformer trg_mask.shape',trg_mask.shape)
         enc_out,enc_word_out = self.encoder(src,src_mask)
         # enc_out --> N,par_len,embed_size -> 2,3,8
         # enc_word_out --> N,par_len, seq_len, embed_size -> 2,3,10,8
-        print("transformer enc_out.shape",enc_out.shape)
-        print('transformer enc_word_out.shape',enc_word_out.shape)
+        # print("transformer enc_out.shape",enc_out.shape)
+        # print('transformer enc_word_out.shape',enc_word_out.shape)
         N,par_len,seq_len = src.shape
         word_mask = torch.eye(src.shape[1]).unsqueeze(2)
         # word_mask --> par_len x par_len x 1
@@ -83,7 +83,7 @@ class Transformer(nn.Module):
         pad_mask = src_mask.unsqueeze(1).expand(-1,par_len,-1,-1).bool()
         # pad_mask --> N,par_len,par_len,seq_len
         final_word_mask = (word_mask & pad_mask).unsqueeze(1)
-        print('transformer final_word_mask.shape',final_word_mask.shape)
+        # print('transformer final_word_mask.shape',final_word_mask.shape)
         # final_word_mask --> N,1,par_len,par_len,seq_len
         out = self.decoder(trg,enc_out,enc_word_out,src_mask,final_word_mask,trg_mask)
         # print('transformer out.shape',out.shape)
