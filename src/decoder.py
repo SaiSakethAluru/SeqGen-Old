@@ -24,7 +24,7 @@ class Decoder(nn.Module):
         self.device = device
         # TODO: add glove here
         # embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values[:,1:]
-        word_embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE)
+        word_embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values
         words = word_embeds[:,:1]
         embeds = word_embeds[:,1:]
         label_indices = [words.index(label) for label in label_list]
