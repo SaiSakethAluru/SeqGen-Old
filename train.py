@@ -8,7 +8,7 @@ import argparse
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 
-LABEL_LIST = []
+LABEL_LIST = ['background','objective','methods','results','conclusions']
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -87,7 +87,7 @@ def train(args):
         model.cuda()
     
     criterion = nn.CrossEntropyLoss(ignore_index=trg_pad_idx)
-    optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
+    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, factor=0.1, patience=10, verbose=True
     )
@@ -100,9 +100,18 @@ def train(args):
 
         losses = []
         for batch_idx,batch in tqdm(enumerate(training_generator)):
+            print('batch',batch)
+            print('type of batch',type(batch))
             inp_data,target = batch
+            print('inp_data',inp_data)
+            print('type(inp_data)',type(inp_data))
+            print('inp_data.shape',inp_data.shape)
+            print('target',target)
+            print('type(target)',type(target))
+            print('target.shape',target.shape)
             inp_data.to(device)
             target.to(device)
+            assert False
 
             output = model(inp_data,target[:,:-1])
             output = output.reshape(-1,output.shape[2])
