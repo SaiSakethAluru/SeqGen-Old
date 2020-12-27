@@ -26,6 +26,7 @@ class Decoder(nn.Module):
         # embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values[:,1:]
         word_embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values
         words = word_embeds[:,:1]
+        words = [word[0] for word in words]
         embeds = word_embeds[:,1:]
         label_indices = [words.index(label) for label in label_list]
         embeds = embeds[label_indices,:] # take only embeddings of label words
