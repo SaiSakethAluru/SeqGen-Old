@@ -15,15 +15,16 @@ class MyDataset(Dataset):
         abs_labels = []
         with open(data_path) as data_file:
             data_file_lines = data_file.readlines()
+            data_file_lines = list(filter(None,[line.rstrip() for line in data_file_lines]))
             for line in data_file_lines[1:]:  # ignore first line which is ID
                 if line.startswith('###'):
                     texts.append(abstract)
                     labels.append(abs_labels)
-                    texts = ""
+                    abstract = ""
                     abs_labels = []
                     continue
-                label, txt = line.split(' ', 1)
-                abstract += txt.lower()
+                label, txt = line.split('\t', 1)
+                abstract += txt.lower()+'\n'
                 abs_labels.append(label.lower())
 
         self.texts = texts
@@ -33,7 +34,7 @@ class MyDataset(Dataset):
         self.dict = [word[0] for word in self.dict]
         self.max_length_sentences = max_length_sentences
         self.max_length_word = max_length_word
-        self.label_list = ['<sos>']+label_list
+        self.label_list = label_list
 
     def __len__(self):
         return len(self.labels)
@@ -42,14 +43,20 @@ class MyDataset(Dataset):
         ### TODO: Add init and eos tokens here
         # ['<pad>','<unk>','<sos>'] + vocab
         labels = self.labels[index]
-        label_encode = [self.dict.index(label)+3 if label in self.dict else 1 for label in labels]
+        # label_encode = [self.dict.index(label)+3 if label in self.dict else 1 for label in labels]
+        label_encode = [self.label_list.index(label)+2 for label in labels] # 0=<pad>, 1=<sos>
         labels = ['<sos>']+labels
-        label_encode = [2]+label_encode
+        label_encode = [1]+label_encode
         if(len(label_encode)<self.max_length_sentences):
             extended_labels = [0 for _ in range(self.max_length_sentences - len(label_encode))]
             label_encode.extend(extended_labels)
         label_encode = label_encode[:self.max_length_sentences]
+        label_encode = np.stack(arrays=label_encode,axis=0)
+
         text = self.texts[index]
+        print('text',text)
+        print('sentences',sent_tokenize(text))
+        print('words',word_tokenize(sent_tokenize(text)[0]))
         document_encode = [
             [self.dict.index(word)+3 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
             in
@@ -69,12 +76,16 @@ class MyDataset(Dataset):
                           :self.max_length_sentences]
 
         document_encode = np.stack(arrays=document_encode, axis=0)
-        document_encode += 1
+        # document_encode += 1
 
         return document_encode.astype(np.int64), label_encode
 
 
 if __name__ == '__main__':
-    LABEL_LIST = ['introduction','background','method','results','conclusion']
-    test = MyDataset(data_path="../data/test.csv", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
-    print(test.__getitem__(index=1)[0].shape)
+    LABEL_LIST = ['background','objective','methods','results','conclusions']
+    test = MyDataset(data_path="../data/train.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
+    # print(test.__getitem__(index=1)[0])
+    # print(test.__getitem__(index=1)[1])
+    item = test.__getitem__(index=1)
+    print(item[0])
+    print(item[1])
