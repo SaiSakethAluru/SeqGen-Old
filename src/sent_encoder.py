@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from encoder_transformer_block import EncoderTransformerBlock
-from word_encoder import WordEncoder
+from src.encoder_transformer_block import EncoderTransformerBlock
+from src.word_encoder import WordEncoder
 import pandas as pd
 import numpy as np
 import csv

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from sent_encoder import SentenceEncoder
-from decoder import Decoder
+from src.sent_encoder import SentenceEncoder
+from src.decoder import Decoder
 
 class Transformer(nn.Module):
     def __init__(

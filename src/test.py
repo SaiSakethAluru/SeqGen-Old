@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 # from sent_encoder import SentenceEncoder
-from transformer import Transformer
+from src.transformer import Transformer
 
 src_vocab_size = 10
 embed_size = 8

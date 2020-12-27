@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from selfatt import SelfAttention
-from decoder_word_crossatt import CrossAttention
+from src.selfatt import SelfAttention
+from src.decoder_word_crossatt import CrossAttention
 
 
 class DecoderTransformerBlock(nn.Module):

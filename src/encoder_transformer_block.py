@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from selfatt import SelfAttention
+from src.selfatt import SelfAttention
 
 
 class EncoderTransformerBlock(nn.Module):

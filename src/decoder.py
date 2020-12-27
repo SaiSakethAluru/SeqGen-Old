@@ -3,7 +3,7 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 import csv
-from decoder_block import DecoderBlock
+from src.decoder_block import DecoderBlock
 
 
 class Decoder(nn.Module):

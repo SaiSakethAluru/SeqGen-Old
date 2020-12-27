@@ -3,7 +3,7 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 import csv
-from encoder_transformer_block import EncoderTransformerBlock
+from src.encoder_transformer_block import EncoderTransformerBlock
 
 class WordEncoder(nn.Module):
     def __init__(
