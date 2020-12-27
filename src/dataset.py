@@ -23,8 +23,8 @@ class MyDataset(Dataset):
                     abs_labels = []
                     continue
                 label, txt = line.split(' ', 1)
-                abstract += txt
-                abs_labels.append(label)
+                abstract += txt.lower()
+                abs_labels.append(label.lower())
 
         self.texts = texts
         self.labels = labels
