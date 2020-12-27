@@ -37,9 +37,11 @@ def get_args():
 def train(args):
     if args.device == 'cuda' and torch.cuda.is_available():
         device = torch.device('cuda')
+        print("using gpu: ", torch.cuda.get_device_name(torch.cuda.current_device()))
         torch.cuda.manual_seed(args.seed)
     else:
         device = torch.device('cpu')
+        print('using cpu')
         torch.manual_seed(args.seed)
     
     training_params = {
@@ -100,18 +102,18 @@ def train(args):
 
         losses = []
         for batch_idx,batch in tqdm(enumerate(training_generator)):
-            print('batch',batch)
-            print('type of batch',type(batch))
+            # print('batch',batch)
+            # print('type of batch',type(batch))
             inp_data,target = batch
-            print('inp_data',inp_data)
-            print('type(inp_data)',type(inp_data))
-            print('inp_data.shape',inp_data.shape)
-            print('target',target)
-            print('type(target)',type(target))
-            print('target.shape',target.shape)
+            # print('inp_data',inp_data)
+            # print('type(inp_data)',type(inp_data))
+            # print('inp_data.shape',inp_data.shape)
+            # print('target',target)
+            # print('type(target)',type(target))
+            # print('target.shape',target.shape)
             inp_data.to(device)
             target.to(device)
-            assert False
+            # assert False
 
             output = model(inp_data,target[:,:-1])
             output = output.reshape(-1,output.shape[2])
