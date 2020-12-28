@@ -76,7 +76,7 @@ class Transformer(nn.Module):
         # print("transformer enc_out.shape",enc_out.shape)
         # print('transformer enc_word_out.shape',enc_word_out.shape)
         N,par_len,seq_len = src.shape
-        word_mask = torch.eye(src.shape[1]).unsqueeze(2)
+        word_mask = torch.eye(src.shape[1]).unsqueeze(2).cuda()
         # word_mask --> par_len x par_len x 1
         word_mask = word_mask.expand(src.shape[0],-1,-1,src.shape[2]).bool()
         # word_mask --> N,par_len,par_len,seq_len

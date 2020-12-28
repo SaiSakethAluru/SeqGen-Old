@@ -35,7 +35,7 @@ class Decoder(nn.Module):
         trg_vocab_size += 2     # Pad and <sos> extra
         pad_word = np.zeros((1,embed_size))
         sos_word = np.zeros((1,embed_size))
-        embeds = torch.from_numpy(np.concatenate([pad_word,sos_word,embeds], axis=0).astype(np.float))
+        embeds = torch.from_numpy(np.concatenate([pad_word,sos_word,embeds], axis=0).astype(np.double))
         self.word_embedding = nn.Embedding(trg_vocab_size, embed_size).from_pretrained(embeds)
         self.position_embedding = nn.Embedding(max_par_len, embed_size)
 
@@ -46,7 +46,7 @@ class Decoder(nn.Module):
             ]
         )
 
-        self.fc_out = nn.Linear(embed_size, len(label_list))
+        self.fc_out = nn.Linear(embed_size, len(label_list)+2)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, enc_out, enc_word_out, src_mask, word_level_mask, trg_mask):

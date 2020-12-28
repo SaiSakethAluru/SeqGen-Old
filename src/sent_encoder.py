@@ -35,14 +35,18 @@ class SentenceEncoder(nn.Module):
             embed_path
         )
         ## TODO: Make this pretrained from glove
-        embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values[:,1:]
+        word_embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values
+        # embeds = pd.read_csv(filepath_or_buffer=embed_path,header=None,sep=' ',quoting=csv.QUOTE_NONE).values[:,1:]
+        embeds = word_embeds[:,1:]
+        words = word_embeds[:,:1]
+        self.words = [word[0] for word in words]
         src_vocab_size,embed_size = embeds.shape
         self.embed_size = embed_size
-        src_vocab_size += 3
+        src_vocab_size += 2
         unknown_word = np.zeros((1, embed_size))
         pad_word = np.zeros((1,embed_size))
-        sos_word = np.zeros((1,embed_size))
-        embeds = torch.from_numpy(np.concatenate([unknown_word,pad_word,sos_word,embeds], axis=0).astype(np.float))
+        # sos_word = np.zeros((1,embed_size))
+        embeds = torch.from_numpy(np.concatenate([pad_word,unknown_word,embeds], axis=0).astype(np.float))
 
         self.word_embedding = nn.Embedding(src_vocab_size,embed_size).from_pretrained(embeds)   # Needed to get the label embeddings
         self.position_embedding = nn.Embedding(max_par_len,embed_size)
@@ -56,8 +60,8 @@ class SentenceEncoder(nn.Module):
         )
         self.dropout = nn.Dropout(dropout)
     def forward(self,x,mask):
-        N,par_len,seq_len = x.shape
         # print("sent x.shape",x.shape)
+        N,par_len,seq_len = x.shape
         # print("sent mask.shape",mask.shape)
         positions = torch.arange(0,par_len).expand(N,par_len).to(self.device)
         # print("sent positions.shape",positions.shape)
@@ -89,12 +93,15 @@ class SentenceEncoder(nn.Module):
             (combined_word_level_out + self.position_embedding(positions))
         )
         # print("sent out.shape",out.shape)
+        # label_embed = [
+        #     self.word_embedding(label) for label in self.labels
+        # ]
         label_embed = [
-            self.word_embedding(label) for label in self.labels
+            self.word_embedding(torch.tensor([self.words.index(label)]).to(self.device)) for label in self.labels
         ]
         # NOTE: Each entry in the above list should be 1,embed_size. If not adjust to this size
-        # label_embed = torch.cat(label_embed,dim=0)
-        label_embed = torch.stack(label_embed,dim=0)
+        label_embed = torch.cat(label_embed,dim=0)
+        # label_embed = torch.stack(label_embed,dim=0)
         label_embed = label_embed.repeat(N,1,1)
         # print("sent label_embed.shape",label_embed.shape)
         mask = mask.permute(1,0,2)

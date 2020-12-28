@@ -47,10 +47,10 @@ class MyDataset(Dataset):
         label_encode = [self.label_list.index(label)+2 for label in labels] # 0=<pad>, 1=<sos>
         labels = ['<sos>']+labels
         label_encode = [1]+label_encode
-        if(len(label_encode)<self.max_length_sentences):
-            extended_labels = [0 for _ in range(self.max_length_sentences - len(label_encode))]
+        if(len(label_encode)<self.max_length_sentences+1):
+            extended_labels = [0 for _ in range(self.max_length_sentences - len(label_encode)+1)]
             label_encode.extend(extended_labels)
-        label_encode = label_encode[:self.max_length_sentences]
+        label_encode = label_encode[:self.max_length_sentences+1]
         label_encode = np.stack(arrays=label_encode,axis=0)
 
         text = self.texts[index]
@@ -58,7 +58,7 @@ class MyDataset(Dataset):
         # print('sentences',sent_tokenize(text))
         # print('words',word_tokenize(sent_tokenize(text)[0]))
         document_encode = [
-            [self.dict.index(word)+3 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
+            [self.dict.index(word)+2 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
             in
             sent_tokenize(text=text)]
 

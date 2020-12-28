@@ -85,8 +85,7 @@ def train(args):
         max_seq_len=args.max_seq_len,
         embed_path=args.embedding_path
     )
-    if args.device=='cuda' and torch.cuda.is_available():
-        model.cuda()
+    model = model.to(device).double()
     
     criterion = nn.CrossEntropyLoss(ignore_index=trg_pad_idx)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
@@ -107,17 +106,20 @@ def train(args):
             inp_data,target = batch
             # print('inp_data',inp_data)
             # print('type(inp_data)',type(inp_data))
-            # print('inp_data.shape',inp_data.shape)
             # print('target',target)
             # print('type(target)',type(target))
             # print('target.shape',target.shape)
-            inp_data.to(device)
-            target.to(device)
+            inp_data = inp_data.to(device)
+            # print('inp_data.shape',inp_data.shape)
+            target = target.to(device)
             # assert False
 
             output = model(inp_data,target[:,:-1])
             output = output.reshape(-1,output.shape[2])
             target = target[:,1:].reshape(-1)
+
+            print('output.shape',output.shape)
+            print('target.shape',target.shape)
             
             optimizer.zero_grad()
 
