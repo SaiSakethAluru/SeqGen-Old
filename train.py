@@ -38,11 +38,10 @@ def train(args):
     if args.device == 'cuda' and torch.cuda.is_available():
         device = torch.device('cuda')
         print("using gpu: ", torch.cuda.get_device_name(torch.cuda.current_device()))
-        torch.cuda.manual_seed(args.seed)
+        
     else:
         device = torch.device('cpu')
         print('using cpu')
-        torch.manual_seed(args.seed)
     
     training_params = {
         "batch_size": args.batch_size,
@@ -118,8 +117,8 @@ def train(args):
             output = output.reshape(-1,output.shape[2])
             target = target[:,1:].reshape(-1)
 
-            print('output.shape',output.shape)
-            print('target.shape',target.shape)
+            # print('output.shape',output.shape)
+            # print('target.shape',target.shape)
             
             optimizer.zero_grad()
 
@@ -131,48 +130,82 @@ def train(args):
             torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm=1)
 
             optimizer.step()
-
+            # break #NOTE: break is there only for quick checking. Remove this for actual training.
+            
         mean_loss = sum(losses)/len(losses)
         scheduler.step(mean_loss)
 
         print(f"Mean loss for epoch {epoch} is {mean_loss}")
         # Validation
         model.eval()
+        val_losses = []
+        val_targets = []
+        val_preds = []
         for batch_idx,batch in tqdm(enumerate(dev_generator)):
             inp_data,target = batch
-            inp_data.to(device)
-            target.to(device)
+            inp_data = inp_data.to(device)
+            target = target.to(device)
             with torch.no_grad():
                 output = model(inp_data,target[:,:-1])
                 reshaped_output = output.reshape(-1,output.shape[2])
                 reshaped_target = target[:,1:].reshape(-1)
-                loss = criterion(output,target).item()
-                print(f"Validation loss at epoch {epoch} is {loss}")
-            output = torch.softmax(output,dim=-1).argmax(dim=-1)
-            f1 = f1_score(target.to('cpu').flatten(),output.to('cpu').flatten(),average='macro')
-            print(f'------Macro F1 score on dev set: {f1}------')
-            if loss < best_val_loss:
-                best_val_loss = loss
-                print(f"val loss less than previous best val loss of {best_val_loss}")
-                if args.save_model:
-                    output_path = args.save_path + '_' + args.seed
-                    print(f"Saving model to path {output_path}")
-                    torch.save(model,output_path)
+                loss = criterion(reshaped_output,reshaped_target).item()
+            val_losses.append(loss)
+            flattened_target = target[:,1:].to('cpu').flatten()
+            flattened_preds = torch.softmax(output,dim=-1).argmax(dim=-1).to('cpu').flatten()
+            for target_i,pred_i in zip(flattened_target,flattened_preds):
+                if target_i != 0:
+                    val_targets.append(target_i)
+                    val_preds.append(pred_i)
+            # val_targets.append(target[:,1:].to('cpu').flatten())
+            # output = torch.softmax(output,dim=-1).argmax(dim=-1)
+            # val_preds.append(output.to('cpu').flatten())
+            # break #NOTE: break is there only for quick checking. Remove this for actual training.
 
+        loss = sum(val_losses) / len(val_losses)
+        print(f"Validation loss at epoch {epoch} is {loss}")
+        # val_targets = torch.cat(val_targets,dim=0)
+        # val_preds = torch.cat(val_preds,dim=0)
+        f1 = f1_score(val_targets,val_preds,average='macro')
+        print(f'------Macro F1 score on dev set: {f1}------')
+        if loss < best_val_loss:
+            print(f"val loss less than previous best val loss of {best_val_loss}")
+            best_val_loss = loss
+            if args.save_model:
+                dir_name = f"seed_{args.seed}_parlen_{args.max_par_len}_seqlen_{args.max_seq_len}.pt"
+                output_path = os.path.join(args.save_path,dir_name)
+                if not os.path.exists(args.save_path):
+                    os.makedirs(args.save_path)
+                print(f"Saving model to path {output_path}")
+                torch.save(model,output_path)
 
         # Testing
         if epoch % args.test_interval == 0:
             model.eval()
-            loss_ls = []
+            test_targets = []
+            test_preds = []
             for batch_idx, batch in tqdm(enumerate(test_generator)):
                 inp_data,target = batch
-                inp_data.to(device)
-                target.to(device)
+                inp_data = inp_data.to(device)
+                target = target.to(device)
                 with torch.no_grad():
                     output = model(inp_data,target[:,:-1])
                 output = torch.softmax(output,dim=-1).argmax(dim=-1)
-                f1 = f1_score(target.to('cpu').flatten(),output.to('cpu').flatten(),average='macro')
-                print(f"------Macro F1 score on test set: {f1}------")
+                flattened_target = target[:,1:].to('cpu').flatten()
+                flattened_preds = output.to('cpu').flatten()
+                for target_i,pred_i in zip(flattened_target,flattened_preds):
+                    if target_i!=0:
+                        test_targets.append(target_i)
+                        test_preds.append(pred_i)
+                # test_targets.append(target[:,1:].to('cpu').flatten())
+                # test_preds.append(output.to('cpu').flatten())
+                # break  #NOTE: break is there only for quick checking. Remove this for actual training. 
+            
+            # test_targets = torch.cat(test_targets,dim=0)
+            # test_preds = torch.cat(test_preds,dim=0)
+            # f1 = f1_score(target[:,1:].to('cpu').flatten(),output.to('cpu').flatten(),average='macro')
+            f1 = f1_score(test_targets,test_preds,average='macro')
+            print(f"------Macro F1 score on test set: {f1}------")
 
 
 
@@ -180,5 +213,6 @@ def train(args):
 
 
 if __name__ == "__main__":
+
     args = get_args()
     train(args)
