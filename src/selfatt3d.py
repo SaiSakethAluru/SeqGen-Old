@@ -48,7 +48,7 @@ class SelfAttention3D(nn.Module):
         # with every other training example, don't be confused by einsum
         # it's just how I like doing matrix multiplication & bmm
 
-        energy = torch.einsum("nqhd,nkshd->nhqks", [queries, keys])
+        energy = torch.einsum("nqshd,nkshd->nhqks", [queries, keys])
         # queries shape: (N, query_len, heads, heads_dim),
         # keys shape: (N, key_len, heads, heads_dim)
         # energy: (N, heads, query_len, key_len)
@@ -63,8 +63,8 @@ class SelfAttention3D(nn.Module):
         attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=3)
         # attention shape: (N, heads, query_len, key_len)
 
-        out = torch.einsum("nhqls,nlshd->nqhd", [attention, values]).reshape(
-            N, query_len, self.heads * self.head_dim
+        out = torch.einsum("nhqls,nlshd->nqshd", [attention, values]).reshape(
+            N, query_len, query_seq_len, self.heads * self.head_dim
         )
         # attention shape: (N, heads, query_len, key_len)
         # values shape: (N, value_len, heads, heads_dim)
