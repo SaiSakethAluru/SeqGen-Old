@@ -3,7 +3,8 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 import csv
-from src.encoder_transformer_block import EncoderTransformerBlock
+# from src.encoder_transformer_block import EncoderTransformerBlock
+from src.encoder_word_transformer_block import EncoderWordTransformerBlock
 
 class WordEncoder(nn.Module):
     def __init__(
@@ -39,7 +40,8 @@ class WordEncoder(nn.Module):
         self.position_embedding = nn.Embedding(max_length,embed_size)
         self.layers = nn.ModuleList(
             [
-                EncoderTransformerBlock(
+                # EncoderTransformerBlock(
+                EncoderWordTransformerBlock(
                     embed_size,heads,dropout,forward_expansion,label_list    
                 )
                 for _ in range(num_layers)
@@ -47,33 +49,48 @@ class WordEncoder(nn.Module):
         )
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, mask):
-        # print('word x.shape',x.shape)
-        # print('word mask.shape',mask.shape)
-        N,seq_len = x.shape
-        positions = torch.arange(0,seq_len).expand(N,seq_len).to(self.device)
-        # print('word positions.shape',positions.shape)
-        # out - N,seq_len,embed_size
+    def forward(self,x,mask):
+        N,par_len,seq_len = x.shape
+        positions = torch.arange(0,seq_len).expand(N,par_len,seq_len).to(self.device)
+
         out = self.dropout(
-            (
-                self.word_embedding(x)+
-                self.position_embedding(positions)
-            )
+            self.word_embedding(x)+self.position_embedding(positions)
         )
-        # print('word out.shape',out.shape)
         label_embed = [
             self.word_embedding(torch.tensor([self.words.index(label)]).to(self.device)) for label in self.labels
         ]
-        # print('word label_embed[0].shape',label_embed[0].shape)
-        # NOTE: Each entry in the above list should be 1,embed_size. If not adjust to this size
-        # label_embed - N,num_labels,embed_size
-        label_embed = torch.cat(label_embed,dim=0)
-        # label_embed = torch.stack(label_embed,dim=0)
-        label_embed = label_embed.repeat(N,1,1)
-        # print('word label_embed.shape',label_embed.shape)
+        label_embed = torch.cat(label_embed,dim=0).repeat(N,1,1)
         for layer in self.layers:
             out = layer(out,out,out,label_embed,mask)
-        # out - N, seq_len, embed_size
-        # print('word out.shape',out.shape)
         return out
+
+    # def forward(self, x, mask):
+    #     # print('word x.shape',x.shape)
+    #     # print('word mask.shape',mask.shape)
+    #     N,seq_len = x.shape
+    #     positions = torch.arange(0,seq_len).expand(N,seq_len).to(self.device)
+    #     # print('word positions.shape',positions.shape)
+    #     # out - N,seq_len,embed_size
+    #     out = self.dropout(
+    #         (
+    #             self.word_embedding(x)+
+    #             self.position_embedding(positions)
+    #         )
+    #     )
+    #     # print('word out.shape',out.shape)
+    #     label_embed = [
+    #         self.word_embedding(torch.tensor([self.words.index(label)]).to(self.device)) for label in self.labels
+    #     ]
+    #     # print('word label_embed[0].shape',label_embed[0].shape)
+    #     # NOTE: Each entry in the above list should be 1,embed_size. If not adjust to this size
+    #     # label_embed - N,num_labels,embed_size
+    #     label_embed = torch.cat(label_embed,dim=0)
+    #     # label_embed = torch.stack(label_embed,dim=0)
+    #     label_embed = label_embed.repeat(N,1,1)
+    #     # print('word label_embed.shape',label_embed.shape)
+    #     for layer in self.layers:
+    #         out = layer(out,out,out,label_embed,mask)
+    #     # out - N, seq_len, embed_size
+    #     # print('word out.shape',out.shape)
+    #     return out
     

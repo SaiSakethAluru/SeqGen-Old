@@ -64,21 +64,23 @@ class SentenceEncoder(nn.Module):
         N,par_len,seq_len = x.shape
         # print("sent mask.shape",mask.shape)
         positions = torch.arange(0,par_len).expand(N,par_len).to(self.device)
+        # Positions = N, par_len
         # print("sent positions.shape",positions.shape)
-        word_level_outputs = []
-        x = x.permute(1,0,2)
-        mask = mask.permute(1,0,2)
+        # word_level_outputs = []
+        # x = x.permute(1,0,2)
+        # mask = mask.permute(1,0,2)
         # x - par_len, N, seq_len
-        for i,sent in enumerate(x):
-            # print("sent sent.shape",sent.shape)
-            word_level_outputs.append(
-                self.word_level_encoder(
-                    sent.reshape(N,seq_len), mask[i].reshape(N,seq_len)
-                )
-            )
+        # for i,sent in enumerate(x):
+        #     # print("sent sent.shape",sent.shape)
+        #     word_level_outputs.append(
+        #         self.word_level_encoder(
+        #             sent.reshape(N,seq_len), mask[i].reshape(N,seq_len)
+        #         )
+        #     )
+        word_level_outputs = self.word_level_encoder(x,mask)
         # NOTE: shape of each output tensor here should be N,seq_len,embed_size for each entry of the above list
         # NOTE: After stacking it should be N,par_len,seq_len,embed_size if everything works fine. Else adjust it.
-        word_level_outputs = torch.stack(word_level_outputs,dim=1)
+        # word_level_outputs = torch.stack(word_level_outputs,dim=1)
         avg_word_level_outputs = torch.mean(word_level_outputs,dim=2,keepdim=True)
         #avg_word_level_outputs - N,par_len,1,embed_size
         weighted_word_level_outputs = torch.einsum('npse,npae->nps',[word_level_outputs,avg_word_level_outputs])
