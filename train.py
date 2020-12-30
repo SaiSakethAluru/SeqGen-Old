@@ -7,17 +7,19 @@ from src.dataset import MyDataset
 import argparse
 from tqdm import tqdm
 from sklearn.metrics import f1_score
+from torchviz import make_dot
+from graphviz import Source
 
 LABEL_LIST = ['background','objective','methods','results','conclusions']
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument('--num_epochs',type=int,default=20)
+    parser.add_argument("--batch_size", type=int, default=1)    ## debug: increase later
+    parser.add_argument('--num_epochs',type=int,default=200)
     parser.add_argument('--lr',type=float,default=1e-3)
     # parser.add_argument('--momentum',type=float,default=0.9)
-    parser.add_argument('--max_par_len',type=int,default=20)
-    parser.add_argument('--max_seq_len',type=int,default=30)
+    parser.add_argument('--max_par_len',type=int,default=20)    ## debug: 
+    parser.add_argument('--max_seq_len',type=int,default=20)    ## debug:
     parser.add_argument('--train_data',type=str,default='data/train.txt')
     parser.add_argument('--dev_data',type=str,default='data/dev.txt')
     parser.add_argument('--test_data',type=str,default='data/test.txt')
@@ -25,7 +27,7 @@ def get_args():
     parser.add_argument('--embed_size',type=int,default=100)
     parser.add_argument('--forward_expansion',type=int,default=4)
     parser.add_argument('--device',type=str,default='cuda')
-    parser.add_argument('--save_model',type=bool,default=True)
+    parser.add_argument('--save_model',type=bool,default=False)
     parser.add_argument('--save_path',type=str,default='models/')
     parser.add_argument('--load_model',type=bool,default=False)
     parser.add_argument('--load_path',type=str,default='model/')
@@ -75,7 +77,7 @@ def train(args):
         src_pad_idx=src_pad_idx,
         trg_pad_idx=trg_pad_idx,
         embed_size=100,
-        num_layers=6,
+        num_layers=1,   ## debug
         forward_expansion=4,
         heads=8,
         dropout=0.5,
@@ -114,19 +116,38 @@ def train(args):
             # assert False
 
             output = model(inp_data,target[:,:-1])
+
+            # print('model net',make_dot(output))
+            # print(make_dot(output))
+            # make_arch = make_dot(output)
+            # Source(make_arch).render('graph.png')
+            # assert False
+            ## output - N,par_len, num_labels --> N*par_len, num_labels
             output = output.reshape(-1,output.shape[2])
+            ## target - 
             target = target[:,1:].reshape(-1)
 
             # print('output.shape',output.shape)
             # print('target.shape',target.shape)
-            
+            # print(f'{epoch} model params', list(model.parameters())[-1])
+            # print('len params',len(list(model.parameters())))
+            # print('trainable params: ',len(list(filter(lambda p: p.requires_grad, model.parameters()))))
             optimizer.zero_grad()
 
             loss = criterion(output,target)
+            # loss.retain_grad()
             losses.append(loss.item())
 
+            # print(f'{epoch} loss grads before', list(loss.grad)[-1])
             loss.backward()
-
+            # print(f'{epoch} loss grads after', loss.grad)
+            # print('model params')
+            # count = 0
+            # for p in model.parameters():
+            #     if p.grad is not None:
+            #         print(p.grad,p.grad.norm())
+            #         count +=1 
+            # print(f'non none grads are {count}')
             torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm=1)
 
             optimizer.step()

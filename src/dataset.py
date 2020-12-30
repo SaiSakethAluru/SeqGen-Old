@@ -29,6 +29,9 @@ class MyDataset(Dataset):
 
         self.texts = texts
         self.labels = labels
+        ## Degub
+        self.texts = self.texts[:30]
+        self.labels = self.labels[:30]
         self.dict = pd.read_csv(filepath_or_buffer=dict_path, header=None, sep=" ", quoting=csv.QUOTE_NONE,
                                 usecols=[0]).values
         self.dict = [word[0] for word in self.dict]
