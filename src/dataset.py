@@ -32,6 +32,7 @@ class MyDataset(Dataset):
         ## Degub
         # self.texts = self.texts[:30]
         # self.labels = self.labels[:30]
+        ## End debug
         self.dict = pd.read_csv(filepath_or_buffer=dict_path, header=None, sep=" ", quoting=csv.QUOTE_NONE,
                                 usecols=[0]).values
         self.dict = [word[0] for word in self.dict]
@@ -82,7 +83,6 @@ class MyDataset(Dataset):
         # document_encode += 1
 
         return document_encode.astype(np.int64), label_encode
-
 
 if __name__ == '__main__':
     LABEL_LIST = ['background','objective','methods','results','conclusions']

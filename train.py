@@ -27,7 +27,7 @@ def get_args():
     parser.add_argument('--embed_size',type=int,default=100)
     parser.add_argument('--forward_expansion',type=int,default=4)
     parser.add_argument('--device',type=str,default='cuda')
-    parser.add_argument('--save_model',type=bool,default=False)
+    parser.add_argument('--save_model',type=bool,default=True)
     parser.add_argument('--save_path',type=str,default='models/')
     parser.add_argument('--load_model',type=bool,default=False)
     parser.add_argument('--load_path',type=str,default='model/')
@@ -154,7 +154,7 @@ def train(args):
             # break #NOTE: break is there only for quick checking. Remove this for actual training.
             
         mean_loss = sum(losses)/len(losses)
-        scheduler.step(mean_loss)
+        # scheduler.step(mean_loss)
 
         print(f"Mean loss for epoch {epoch} is {mean_loss}")
         # Validation
