@@ -42,7 +42,7 @@ class WordLabelAttention(nn.Module):
         ## DOUBT: Is this needed though?
         values = values.unsqueeze(2).expand(N,value_len,self.heads,self.head_dim)
         keys = keys.unsqueeze(2).expand(N,key_len,self.heads,self.head_dim)
-        query = query.unsqueeze(3).expand(N,query_len,self.heads,self.head_dim)
+        query = query.unsqueeze(3).expand(N,query_len,query_seq_len, self.heads,self.head_dim)
 
         values = self.values(values)  # (N, value_len, heads, head_dim)
         keys = self.keys(keys)  # (N, key_len, heads, head_dim)

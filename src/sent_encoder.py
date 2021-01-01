@@ -106,7 +106,7 @@ class SentenceEncoder(nn.Module):
         # label_embed = torch.stack(label_embed,dim=0)
         label_embed = label_embed.repeat(N,1,1)
         # print("sent label_embed.shape",label_embed.shape)
-        mask = mask.permute(1,0,2)
+        # mask = mask.permute(1,0,2)
         # mask - N,par_len,seq_len
         mask = torch.any(mask.bool(),dim=2).int()
         # mask - N,par_len --> mask now tells only if a sentence is padded one or not.

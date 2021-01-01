@@ -14,7 +14,7 @@ LABEL_LIST = ['background','objective','methods','results','conclusions']
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=1)    ## debug: increase later
+    parser.add_argument("--batch_size", type=int, default=32)    ## debug: increase later
     parser.add_argument('--num_epochs',type=int,default=200)
     parser.add_argument('--lr',type=float,default=1e-3)
     # parser.add_argument('--momentum',type=float,default=0.9)
@@ -90,9 +90,9 @@ def train(args):
     
     criterion = nn.CrossEntropyLoss(ignore_index=trg_pad_idx)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, factor=0.1, patience=10, verbose=True
-    )
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    #     optimizer, factor=0.1, patience=10, verbose=True
+    # )
     
     epoch_losses = []
     best_val_loss = float('inf')

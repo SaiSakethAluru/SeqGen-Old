@@ -44,6 +44,18 @@ class Transformer(nn.Module):
             max_seq_len,
             embed_path
         )
+        self.second_pass_decoder = Decoder(
+            label_list,
+            embed_size,
+            num_layers,
+            heads,
+            forward_expansion,
+            dropout,
+            device,
+            max_par_len,
+            max_seq_len,
+            embed_path
+        )
         self.src_pad_idx = src_pad_idx
         self.trg_pad_idx = trg_pad_idx
         self.device = device
@@ -55,6 +67,13 @@ class Transformer(nn.Module):
     def make_trg_mask(self,trg):
         N,trg_len = trg.shape
         trg_mask = torch.tril(torch.ones((trg_len,trg_len))).expand(
+            N,1,trg_len,trg_len
+        )
+        return trg_mask.to(self.device)
+
+    def make_second_pass_mask(self,trg):
+        N,trg_len = trg.shape
+        trg_mask = torch.ones((trg_len,trg_len)).expand(
             N,1,trg_len,trg_len
         )
         return trg_mask.to(self.device)
@@ -88,4 +107,7 @@ class Transformer(nn.Module):
         out = self.decoder(trg,enc_out,enc_word_out,src_mask,final_word_mask,trg_mask)
         # print('transformer out.shape',out.shape)
         # out --> N,par_len,num_labels
-        return out
+        labels = out.argmax(dim=-1)
+        second_pass_mask = self.make_second_pass_mask(trg)
+        second_out = self.second_pass_decoder(labels,enc_out,enc_word_out,src_mask,final_word_mask,second_pass_mask)
+        return second_out
