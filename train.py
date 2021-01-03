@@ -14,12 +14,12 @@ LABEL_LIST = ['background','objective','methods','results','conclusions']
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", type=int, default=32)    ## debug: increase later
+    parser.add_argument("--batch_size", type=int, default=16)    ## debug: increase later
     parser.add_argument('--num_epochs',type=int,default=200)
-    parser.add_argument('--lr',type=float,default=1e-3)
+    parser.add_argument('--lr',type=float,default=1e-2)
     # parser.add_argument('--momentum',type=float,default=0.9)
     parser.add_argument('--max_par_len',type=int,default=20)    ## debug: 
-    parser.add_argument('--max_seq_len',type=int,default=20)    ## debug:
+    parser.add_argument('--max_seq_len',type=int,default=50)    ## debug:
     parser.add_argument('--train_data',type=str,default='data/train.txt')
     parser.add_argument('--dev_data',type=str,default='data/dev.txt')
     parser.add_argument('--test_data',type=str,default='data/test.txt')
@@ -77,7 +77,7 @@ def train(args):
         src_pad_idx=src_pad_idx,
         trg_pad_idx=trg_pad_idx,
         embed_size=100,
-        num_layers=1,   ## debug
+        num_layers=6,   ## debug
         forward_expansion=4,
         heads=8,
         dropout=0.5,
@@ -193,7 +193,7 @@ def train(args):
             print(f"val loss less than previous best val loss of {best_val_loss}")
             best_val_loss = loss
             if args.save_model:
-                dir_name = f"seed_{args.seed}_parlen_{args.max_par_len}_seqlen_{args.max_seq_len}.pt"
+                dir_name = f"seed_{args.seed}_parlen_{args.max_par_len}_seqlen_{args.max_seq_len}_lr_{args.lr}.pt"
                 output_path = os.path.join(args.save_path,dir_name)
                 if not os.path.exists(args.save_path):
                     os.makedirs(args.save_path)

@@ -1,15 +1,16 @@
 import pandas as pd
 from torch.utils.data.dataset import Dataset
 import csv
-from nltk.tokenize import sent_tokenize, word_tokenize
+# from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tokenize import sent_tokenize, RegexpTokenizer
 import numpy as np
 
 
 class MyDataset(Dataset):
 
-    def __init__(self, data_path, dict_path,label_list, max_length_sentences=30, max_length_word=35):
+    def __init__(self, data_path, dict_path,label_list, max_length_sentences, max_length_word):
         super(MyDataset, self).__init__()
-
+        self.word_tokenizer = RegexpTokenizer(r'\w+')
         texts, labels = [], []
         abstract = ""
         abs_labels = []
@@ -62,7 +63,7 @@ class MyDataset(Dataset):
         # print('sentences',sent_tokenize(text))
         # print('words',word_tokenize(sent_tokenize(text)[0]))
         document_encode = [
-            [self.dict.index(word)+2 if word in self.dict else 1 for word in word_tokenize(text=sentences)] for sentences
+            [self.dict.index(word)+2 if word in self.dict else 1 for word in self.word_tokenizer.tokenize(text=sentences)] for sentences
             in
             sent_tokenize(text=text)]
 
@@ -84,8 +85,36 @@ class MyDataset(Dataset):
 
         return document_encode.astype(np.int64), label_encode
 
+    def check_sizes(self):
+        par_len, seq_len = 0,0
+        total_par,excess_par=0,0
+        total_seq, excess_seq = 0,0
+        for t in self.texts:
+            sents = sent_tokenize(t)
+            if(len(sents) > par_len):
+                par_len = len(sents)
+                max_par = sents
+            if(len(sents)>20):
+                excess_par+=1
+            total_par+=1
+            for s in sents:
+                total_seq+=1
+                words = self.word_tokenizer.tokenize(s)
+                if len(words) > seq_len:
+                    seq_len = len(words)
+                    max_seq = words
+                if len(words) > 50:
+                    excess_seq+=1
+        print('par %', (excess_par/total_par)*100)
+        print('seq %', (excess_seq/total_seq)*100)
+        return par_len,seq_len
+
 if __name__ == '__main__':
     LABEL_LIST = ['background','objective','methods','results','conclusions']
-    test = MyDataset(data_path="../data/train.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
-    item = test.__getitem__(index=1)
-    print(item[0], item[1])
+    train = MyDataset(data_path="../data/train.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
+    print('train',train.check_sizes())
+    dev = MyDataset(data_path="../data/dev.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
+    print('dev',dev.check_sizes())
+    test = MyDataset(data_path="../data/test.txt", dict_path="../data/glove.6B.50d.txt",label_list=LABEL_LIST)
+    print('test',test.check_sizes())
+    # print(test.__getitem__(0))
