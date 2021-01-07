@@ -26,12 +26,13 @@ def get_args():
     parser.add_argument('--embedding_path',type=str,default='data/glove.6B.100d.txt')
     parser.add_argument('--embed_size',type=int,default=100)
     parser.add_argument('--forward_expansion',type=int,default=4)
+    parser.add_argument('--num_layers',type=int,default=1)
     parser.add_argument('--device',type=str,default='cuda')
     parser.add_argument('--save_model',type=bool,default=True)
     parser.add_argument('--save_path',type=str,default='models/')
     parser.add_argument('--load_model',type=bool,default=False)
-    parser.add_argument('--load_path',type=str,default='model/')
-    parser.add_argument('--seed',type=int,default=1234)
+    parser.add_argument('--load_path',type=str,default='models/')
+    parser.add_argument('--seed',type=int,default=777)
     parser.add_argument('--test_interval',type=int,default=1)
     args = parser.parse_args()
     return args
@@ -76,9 +77,9 @@ def train(args):
         label_list=LABEL_LIST,
         src_pad_idx=src_pad_idx,
         trg_pad_idx=trg_pad_idx,
-        embed_size=100,
-        num_layers=6,   ## debug
-        forward_expansion=4,
+        embed_size=args.embed_size,
+        num_layers=args.num_layers,   ## debug
+        forward_expansion=args.forward_expansion,
         heads=8,
         dropout=0.5,
         device=device,
